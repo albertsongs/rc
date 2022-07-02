@@ -99,7 +99,6 @@ ul li.selected::before {
     margin: 80px auto;
     position: relative;
     text-indent: -9999em;
-    -webkit-transform: translateZ(0);
     -ms-transform: translateZ(0);
     transform: translateZ(0);
     -webkit-animation-delay: -0.16s;
@@ -153,4 +152,13 @@ ul li.selected::before {
 
 #loadVideosDesc {
     display: none;
+}
+
+#controlPanel {
+    text-align: center;
+    margin: 20px;
+}
+
+#controlPanel > button {
+    margin: 8px;
 }
