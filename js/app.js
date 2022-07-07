@@ -75,9 +75,12 @@ class App {
             if (this.status === 200) {
                 that.loadVideos();
             } else {
-                that.findUpToDateReceiver();
+                let errMsg = "Приёмник с данным идентификатором не найден (id: %id%).\n\n"
+                    .replace('%id%', that.receiverId)
+                + "Попробуем найти самый свежий приёмник поблизости?"
+                alert(errMsg);
+                window.location.search = "";
             }
-
         };
         xHttp.open("GET", url, true);
         xHttp.send();
