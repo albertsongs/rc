@@ -28,16 +28,20 @@ class App {
     }
 
     readReceiverIdFromQueryParam() {
-        return window.location.search.split('=')[1];
+        return window.location.search.split('=')[1] ?? null;
     }
 
     initReceiverId() {
         this.ui.step1();
         this.receiverId = this.readReceiverIdFromQueryParam();
         if (this.receiverId !== null) {
-            this.loadVideos();
+            this.checkReceiverId();
             return;
         }
+        this.findUpToDateReceiver();
+    }
+
+    findUpToDateReceiver() {
         const xHttp = new XMLHttpRequest();
         const receiverControllerPath = "/api/v1/receivers";
         const url = this.apiUrl + receiverControllerPath;
@@ -49,12 +53,31 @@ class App {
                 that.receiverId = receivers[0]?.id ?? null;
                 if (that.receiverId === null) {
                     setTimeout(function () {
-                        that.initReceiverId();
+                        that.findUpToDateReceiver();
                     }, 5000);
                     return;
                 }
                 that.loadVideos();
             }
+        };
+        xHttp.open("GET", url, true);
+        xHttp.send();
+    }
+
+    checkReceiverId() {
+        const xHttp = new XMLHttpRequest();
+        const url = this.apiUrl + "/api/v1.1/receivers/" + this.receiverId;
+        let that = this;
+        xHttp.onreadystatechange = function () {
+            if (this.readyState !== 4) {
+                return;
+            }
+            if (this.status === 200) {
+                that.loadVideos();
+            } else {
+                that.findUpToDateReceiver();
+            }
+
         };
         xHttp.open("GET", url, true);
         xHttp.send();
