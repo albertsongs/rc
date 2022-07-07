@@ -83,13 +83,11 @@ class App {
             if (this.readyState !== 4) {
                 return;
             }
-            switch (this.status) {
-                case 202:
-                    console.log(xHttp.response);
-                    break;
-                case 0:
-                    window.location.reload();
+            if (this.status === 202) {
+                console.log(xHttp.response);
+                return;
             }
+            window.location.reload();
         }
         xHttp.open('POST', url, true);
         xHttp.setRequestHeader('Content-type', 'application/json');
