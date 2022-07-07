@@ -27,8 +27,17 @@ class App {
         };
     }
 
+    readReceiverIdFromQueryParam() {
+        return window.location.search.split('=')[1];
+    }
+
     initReceiverId() {
         this.ui.step1();
+        this.receiverId = this.readReceiverIdFromQueryParam();
+        if (this.receiverId !== null) {
+            this.loadVideos();
+            return;
+        }
         const xHttp = new XMLHttpRequest();
         const receiverControllerPath = "/api/v1/receivers";
         const url = this.apiUrl + receiverControllerPath;
@@ -71,10 +80,17 @@ class App {
             .replace(':command', command);
         const url = this.apiUrl + receiverControllerPath;
         xHttp.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 202) {
-                console.log(xHttp.response);
+            if (this.readyState !== 4) {
+                return;
             }
-        };
+            switch (this.status) {
+                case 202:
+                    console.log(xHttp.response);
+                    break;
+                case 0:
+                    window.location.reload();
+            }
+        }
         xHttp.open('POST', url, true);
         xHttp.setRequestHeader('Content-type', 'application/json');
         xHttp.send(payload ? JSON.stringify(payload) : null);
