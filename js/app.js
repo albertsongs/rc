@@ -4,7 +4,7 @@
 class App {
     constructor(apiUrl, ui) {
         this.receiverId = null;
-        this.apiUrl = apiUrl;
+        this.apiUrl = apiUrl + "/api/v1.2/";
         this.ui = ui;
         this.initControlPanelHandlers();
     }
@@ -43,22 +43,25 @@ class App {
 
     findUpToDateReceiver() {
         const xHttp = new XMLHttpRequest();
-        const receiverControllerPath = "/api/v1/receivers";
+        const receiverControllerPath = "receivers?isOnline=true";
         const url = this.apiUrl + receiverControllerPath;
         let that = this;
         xHttp.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
+            if (this.readyState !== 4) {
+                return;
+            }
+            if (this.status === 200) {
                 const response = JSON.parse(xHttp.responseText);
                 const receivers = response.list;
                 that.receiverId = receivers[0]?.id ?? null;
-                if (that.receiverId === null) {
-                    setTimeout(function () {
-                        that.findUpToDateReceiver();
-                    }, 5000);
+                if (that.receiverId !== null) {
+                    that.loadVideos();
                     return;
                 }
-                that.loadVideos();
             }
+            setTimeout(function () {
+                that.findUpToDateReceiver();
+            }, 5000);
         };
         xHttp.open("GET", url, true);
         xHttp.send();
@@ -66,7 +69,7 @@ class App {
 
     checkReceiverId() {
         const xHttp = new XMLHttpRequest();
-        const url = this.apiUrl + "/api/v1.1/receivers/" + this.receiverId;
+        const url = this.apiUrl + "receivers/" + this.receiverId + "?isOnline=true";
         let that = this;
         xHttp.onreadystatechange = function () {
             if (this.readyState !== 4) {
@@ -101,7 +104,7 @@ class App {
             return;
         }
         const xHttp = new XMLHttpRequest();
-        const receiverControllerPath = '/api/v1.1/receivers/{receiverId}/:command'
+        const receiverControllerPath = 'receivers/{receiverId}/:command'
             .replace('{receiverId}', this.receiverId)
             .replace(':command', command);
         const url = this.apiUrl + receiverControllerPath;
@@ -123,7 +126,7 @@ class App {
     loadVideos() {
         this.ui.step2();
         const xHttp = new XMLHttpRequest();
-        const receiverControllerPath = "/api/v1/videos";
+        const receiverControllerPath = "videos";
         const url = this.apiUrl + receiverControllerPath;
         let that = this;
         xHttp.onreadystatechange = function () {
