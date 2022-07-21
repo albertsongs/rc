@@ -4,7 +4,7 @@
 class App {
     constructor(apiUrl, ui) {
         this.receiverId = null;
-        this.apiUrl = apiUrl;
+        this.apiUrl = apiUrl + "/api/v1.2/";
         this.ui = ui;
         this.initControlPanelHandlers();
     }
@@ -27,24 +27,62 @@ class App {
         };
     }
 
+    readReceiverIdFromQueryParam() {
+        return window.location.search.split('=')[1] ?? null;
+    }
+
     initReceiverId() {
         this.ui.step1();
+        this.receiverId = this.readReceiverIdFromQueryParam();
+        if (this.receiverId !== null) {
+            this.checkReceiverId();
+            return;
+        }
+        this.findUpToDateReceiver();
+    }
+
+    findUpToDateReceiver() {
         const xHttp = new XMLHttpRequest();
-        const receiverControllerPath = "/api/v1/receivers";
+        const receiverControllerPath = "receivers?isOnline=true";
         const url = this.apiUrl + receiverControllerPath;
         let that = this;
         xHttp.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
+            if (this.readyState !== 4) {
+                return;
+            }
+            if (this.status === 200) {
                 const response = JSON.parse(xHttp.responseText);
                 const receivers = response.list;
                 that.receiverId = receivers[0]?.id ?? null;
-                if (that.receiverId === null) {
-                    setTimeout(function () {
-                        that.initReceiverId();
-                    }, 5000);
+                if (that.receiverId !== null) {
+                    that.loadVideos();
                     return;
                 }
+            }
+            setTimeout(function () {
+                that.findUpToDateReceiver();
+            }, 5000);
+        };
+        xHttp.open("GET", url, true);
+        xHttp.send();
+    }
+
+    checkReceiverId() {
+        const xHttp = new XMLHttpRequest();
+        const url = this.apiUrl + "receivers/" + this.receiverId + "?isOnline=true";
+        let that = this;
+        xHttp.onreadystatechange = function () {
+            if (this.readyState !== 4) {
+                return;
+            }
+            if (this.status === 200) {
                 that.loadVideos();
+            } else {
+                let errMsg = "Приёмник с данным идентификатором не найден (id: %id%).\n\n"
+                    .replace('%id%', that.receiverId)
+                + "Попробуем найти самый свежий приёмник поблизости?"
+                alert(errMsg);
+                window.location.search = "";
             }
         };
         xHttp.open("GET", url, true);
@@ -66,15 +104,20 @@ class App {
             return;
         }
         const xHttp = new XMLHttpRequest();
-        const receiverControllerPath = '/api/v1.1/receivers/{receiverId}/:command'
+        const receiverControllerPath = 'receivers/{receiverId}/:command'
             .replace('{receiverId}', this.receiverId)
             .replace(':command', command);
         const url = this.apiUrl + receiverControllerPath;
         xHttp.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 202) {
-                console.log(xHttp.response);
+            if (this.readyState !== 4) {
+                return;
             }
-        };
+            if (this.status === 202) {
+                console.log(xHttp.response);
+                return;
+            }
+            window.location.reload();
+        }
         xHttp.open('POST', url, true);
         xHttp.setRequestHeader('Content-type', 'application/json');
         xHttp.send(payload ? JSON.stringify(payload) : null);
@@ -83,7 +126,7 @@ class App {
     loadVideos() {
         this.ui.step2();
         const xHttp = new XMLHttpRequest();
-        const receiverControllerPath = "/api/v1/videos";
+        const receiverControllerPath = "videos";
         const url = this.apiUrl + receiverControllerPath;
         let that = this;
         xHttp.onreadystatechange = function () {
