@@ -178,6 +178,14 @@ ul li.selected::before {
     }
 }
 
+@media (max-width: 460px) {
+    #controlPanel > button {
+        margin: 2px;
+        height: 84px;
+        width: 54px;
+    }
+}
+
 @media (max-width: 534px) {
     h1 {
         font-size: 36px;
