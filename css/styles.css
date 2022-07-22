@@ -172,9 +172,9 @@ ul li.selected::before {
 
 @media (max-width: 640px) {
     #controlPanel > button {
-        margin: 4px;
-        height: 54px;
-        width: 60px;
+        margin: 2px;
+        height: 74px;
+        width: 62px;
     }
 }
 
