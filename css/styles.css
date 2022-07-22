@@ -169,3 +169,21 @@ ul li.selected::before {
     border-radius: 12px;
     background-color: #1f0733;
 }
+
+@media (max-width: 640px) {
+    #controlPanel > button {
+        margin: 8px;
+        height: 72px;
+        width: 64px;
+    }
+}
+
+@media (max-width: 534px) {
+    h1 {
+        font-size: 36px;
+    }
+
+    ul > li {
+        font-size: 28px;
+    }
+}
